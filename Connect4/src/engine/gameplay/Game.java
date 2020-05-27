@@ -1,6 +1,6 @@
 package engine.gameplay;
 
-import engine.evaluation.EvaluationFunction;
+import engine.evaluation.ChangedPointScoringFunction;
 import utilities.Player;
 
 import java.util.ArrayList;
@@ -9,10 +9,10 @@ import java.util.Map;
 
 public abstract class Game {
     private static final int WINNING_SEQ_NUMBER = 4;
-    private static final int COLUMNS = 7;
+    static final int COLUMNS = 7;
     private static final int ROWS = 6;
 
-    EvaluationFunction function = new EvaluationFunction();
+    ChangedPointScoringFunction function = new ChangedPointScoringFunction();
     boolean isFinished = false;
     ArrayList<ArrayList<Point>> board = new ArrayList<ArrayList<Point>>();
     Player currentPlayer;
@@ -51,10 +51,23 @@ public abstract class Game {
                 winner = currentPlayer;
                 isFinished = true;
             }
+
+            if (checkIfBoardIsFull()){
+                isFinished = true;
+            }
+
             calculateAndSetScore();
             return true;
         }
         return false;
+    }
+
+    private boolean checkIfBoardIsFull(){
+        for (int i = 0; i < board.get(0).size(); i++)
+            if (isMovePossible(i))
+                return false;
+
+        return true;
     }
 
     private boolean isMovePossible(int column){
@@ -137,7 +150,7 @@ public abstract class Game {
 
 
 
-    private void initializeGame(){
+    void initializeGame(){
         initializeBoard();
         currentPlayer = Player.FIRST_PLAYER;
     }

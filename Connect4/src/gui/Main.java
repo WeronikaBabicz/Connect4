@@ -19,14 +19,14 @@ public class Main extends Application {
         Controller controller = (Controller) loader.getController();
 
         Game game = new PlayerPlayerGame();
-        Algorithm algorithm = new MinMaxAlgorithm();
+        //Algorithm algorithm = new MinMaxAlgorithm();
 
-        controller.setAlgorithm(algorithm);
+        //controller.setAlgorithm(algorithm);
         controller.setGame(game);
-        controller.startNewGame();
+        controller.startWindow();
 
         primaryStage.setTitle("Connect4 game");
-        primaryStage.setScene(new Scene(root, 800, 600));
+        primaryStage.setScene(new Scene(root, 1180, 600));
         primaryStage.show();
     }
 

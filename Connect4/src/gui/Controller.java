@@ -1,12 +1,18 @@
 package gui;
 
 import engine.algorithms.Algorithm;
+import engine.algorithms.AlphaBetaAlgorithm;
+import engine.algorithms.MinMaxAlgorithm;
 import engine.gameplay.*;
+import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
-import javafx.concurrent.Service;
-import javafx.concurrent.Task;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
@@ -17,14 +23,12 @@ import utilities.Player;
 import javafx.event.ActionEvent;
 
 import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
 
 public class Controller {
     private Game game;
-    private Algorithm algorithm;
 
     @FXML
-    private Label winner, turn, turnColor, gameType, winnerColor, leader, winnerTitle;
+    private Label winner, turn, turnColor, gameType, winnerColor, leader, winnerTitle, firstPlayerInfo, secondPlayerInfo;
 
     private ArrayList<ArrayList<Circle>> circles = new ArrayList<>();
 
@@ -40,7 +44,43 @@ public class Controller {
     private Rectangle col0, col1, col2, col3, col4, col5, col6;
 
     @FXML
-    private Button newGamePlayerPlayer, newGameAiPlayer, newGameAiAi;
+    private ComboBox algorithmPA = new ComboBox();
+
+    @FXML
+    private ComboBox algorithmAAFirst = new ComboBox();
+
+    @FXML
+    private ComboBox algorithmAASecond = new ComboBox();
+
+    @FXML
+    private ComboBox depthPA = new ComboBox();
+
+    @FXML
+    private ComboBox depthAAFirst = new ComboBox();
+
+    @FXML
+    private ComboBox depthAASecond = new ComboBox();
+
+    @FXML
+    private Label algPA = new Label();
+
+    @FXML
+    private Label algAAF = new Label();
+
+    @FXML
+    private Label algAAS = new Label();
+
+    @FXML
+    private Label depPA = new Label();
+
+    @FXML
+    private Label depAAF = new Label();
+
+    @FXML
+    private Label depAAS = new Label();
+
+    @FXML
+    private Button newGamePlayerPlayer, newGamePlayerAi, newGameAiAi;
 
     void setGame(Game game) {
         this.game = game;
@@ -83,53 +123,134 @@ public class Controller {
 
 
     @FXML
+    CheckBox randomFirstTurn;
+
+    @FXML
     void newGamePP(ActionEvent event){
         Game newGame = new PlayerPlayerGame();
         setGame(newGame);
         gameType.setText("Player vs. Player");
-        startNewGame();
+        firstPlayerInfo.setText("1st: Player");
+        secondPlayerInfo.setText("2nd: Player");
+        start();
     }
 
     @FXML
-    void newGameAP(ActionEvent event){
-        Game newGame = new AiPlayerGame(algorithm);
-        setGame(newGame);
-        gameType.setText("Ai vs. Player");
-        startNewGame();
+    void newGamePA(ActionEvent event){
+        Algorithm algorithm = collectInfoOfAlgorithm(algPA, depPA);
+        if (algorithm != null) {
+            Game newGame = new PlayerAiGame(algorithm);
+            setGame(newGame);
+            gameType.setText("Player vs. AI");
+            firstPlayerInfo.setText("1st: Player");
+            secondPlayerInfo.setText("2nd: AI, " + algPA.getText()+", depth: " + depPA.getText());
+            start();
+        }
     }
 
     @FXML
     void newGameAA(ActionEvent event){
-        Game newGame = new AiAiGame(algorithm);
-        setGame(newGame);
-        gameType.setText("Ai vs. Ai");
-        startNewGame();
+        Algorithm firstAlgorithm = collectInfoOfAlgorithm(algAAF, depAAF);
+        Algorithm secondAlgorithm = collectInfoOfAlgorithm(algAAS, depAAS);
 
-        while (!game.isFinished()){
-            ((AiAiGame)game).playTurn();
-            markMoveWithAI();
-            game.changePlayer();
-            updateLabels();
+        if (firstAlgorithm != null && secondAlgorithm != null){
+            Game newGame = new AiAiGame(firstAlgorithm, secondAlgorithm);
+            setGame(newGame);
+            gameType.setText("AI vs. AI");
+            firstPlayerInfo.setText("1st: AI, " + algAAF.getText()+", depth: " + depAAF.getText());
+            secondPlayerInfo.setText("2nd: AI, " + algAAS.getText()+", depth: " + depAAS.getText());
+            start();
+
+            if (randomFirstTurn.isSelected()) {
+                ((AiAiGame)game).playRandomTurn();
+                markMoveWithAI();
+                game.changePlayer();
+                updateLabels();
+            }
+
+            while (!game.isFinished()){
+                ((AiAiGame)game).playTurn();
+                markMoveWithAI();
+                game.changePlayer();
+                updateLabels();
+            }
         }
     }
 
 
-    void startNewGame(){
+
+    private Algorithm collectInfoOfAlgorithm(Label label, Label depthLabel){
+        Algorithm algorithm = null;
+        if (label.getText().equals("Min-Max")) {
+            algorithm = new MinMaxAlgorithm(Integer.parseInt(depthLabel.getText()));
+        } else if (label.getText().equals("Alpha-Beta")) {
+            algorithm = new AlphaBetaAlgorithm(Integer.parseInt(depthLabel.getText()));
+        }
+        return algorithm;
+    }
+
+    void startWindow(){
+        initializeBoxes();
+        initializeDepthBoxes();
+        start();
+    }
+
+    private void start(){
         initializeCirclesBoard();
         initializeCircleColors();
-        initializeLabels();
         initializeButtonsStyles();
+        initializeLabels();
         game.startGame();
+    }
+
+    private void initializeDepthBoxes(){
+        ObservableList<String> depths = FXCollections.observableArrayList("1", "2", "3", "4", "5", "6");
+        depthPA.getItems().addAll(depths);
+        setListener(depthPA, depPA);
+        depthPA.getSelectionModel().select(4);
+
+        depthAAFirst.getItems().addAll(depths);
+        setListener(depthAAFirst, depAAF);
+        depthAAFirst.getSelectionModel().select(4);
+
+        depthAASecond.getItems().addAll(depths);
+        setListener(depthAASecond, depAAS);
+        depthAASecond.getSelectionModel().select(4);
+
+    }
+
+    private void initializeBoxes(){
+        ObservableList<String> algs = FXCollections.observableArrayList("Min-Max", "Alpha-Beta");
+        algorithmPA.getItems().addAll(algs);
+        setListener(algorithmPA, algPA);
+        algorithmPA.getSelectionModel().selectFirst();
+
+        algorithmAAFirst.getItems().addAll(algs);
+        setListener(algorithmAAFirst, algAAF);
+        algorithmAAFirst.getSelectionModel().selectFirst();
+
+        algorithmAASecond.getItems().addAll(algs);
+        setListener(algorithmAASecond, algAAS);
+        algorithmAASecond.getSelectionModel().selectFirst();
+    }
+
+    private void setListener(ComboBox box, Label label){
+        box.valueProperty().addListener(new ChangeListener() {
+            @Override
+            public void changed(ObservableValue observableValue, Object o, Object t1) {
+                label.setText(t1.toString());
+            }
+        });
     }
 
     private void initializeButtonsStyles(){
         Font font = new Font("Consolas", 18); //Button font's size should increase to 40
         newGamePlayerPlayer.setFont(font);
-        newGameAiPlayer.setFont(font);
+        newGamePlayerAi.setFont(font);
         newGameAiAi.setFont(font);
 
         newGamePlayerPlayer.setStyle("-fx-background-color: #d9d2d2; -fx-border-color: #5e5e5e; -fx-border-width: 1px");
-        newGameAiPlayer.setStyle("-fx-background-color: #d9d2d2; -fx-border-color: #5e5e5e; -fx-border-width: 1px");
+        newGamePlayerAi.setStyle("-fx-background-color: #d9d2d2; -fx-border-color: #5e5e5e; -fx-border-width: 1px");
         newGameAiAi.setStyle("-fx-background-color: #d9d2d2; -fx-border-color: #5e5e5e; -fx-border-width: 1px");
 
         setListenersOnButtons();
@@ -137,7 +258,7 @@ public class Controller {
 
     private void setListenersOnButtons(){
         setListenerOnButton(newGamePlayerPlayer);
-        setListenerOnButton(newGameAiPlayer);
+        setListenerOnButton(newGamePlayerAi);
         setListenerOnButton(newGameAiAi);
     }
 
@@ -158,6 +279,8 @@ public class Controller {
         turnColor.setText("Yellow");
         leader.setText("0");
         leader.setStyle("");
+        winner.setStyle("");
+
     }
 
     private void initializeCircleColors(){
@@ -180,6 +303,7 @@ public class Controller {
         int row = game.getRowIndexOfPoint(game.getPlayerLastMove(player));
         int column = game.getColumnIndexOfPoint(game.getPlayerLastMove(player));
 
+        System.out.println(player + " " + row + "," + column);
         setColor(row, column, getPlayerColor(player));
     }
 
@@ -191,8 +315,8 @@ public class Controller {
             markMovePP();
         }
 
-        if (game instanceof AiPlayerGame) {
-            succ = ((AiPlayerGame) game).playTurn(columnIndex);
+        if (game instanceof PlayerAiGame) {
+            succ = ((PlayerAiGame) game).playTurn(columnIndex);
             markMoveWithAI();
         }
 
@@ -213,25 +337,28 @@ public class Controller {
     private void updateLabels(){
         if (game.isFinished()) {
             winnerTitle.setText("Winner");
-            winner.setText(String.valueOf(game.getWinner()));
-            winnerColor.setText(game.getWinner().getColor());
+            winner.setText((game.getWinner() != null) ? String.valueOf(game.getWinner()) : "Draw");
+            winnerColor.setText((game.getWinner() != null) ? game.getWinner().getColor(): "");
+            setLabelStyleAndColor(game.getWinner(), winner);
+            //setLabelStyleAndColor(game.getWinner(), winnerColor);
+            leader.setStyle("");
         }
         else {
             turn.setText(String.valueOf(game.getCurrentPlayer()));
             turnColor.setText(game.getCurrentPlayer().getColor());
+            setLabelStyleAndColor(getLeader(), leader);
         }
-        setLeaderStyleAndScore();
+        leader.setText(getLeaderWithScore());
     }
 
-    private void setLeaderStyleAndScore(){
-        leader.setText(getLeaderWithScore());
-        if (getLeader() == Player.FIRST_PLAYER)
-            leader.setStyle("-fx-background-color: LIGHTYELLOW; -fx-border-color:black;");
+    private void setLabelStyleAndColor(Player player, Label labelToUpdate){
+        if (player == Player.FIRST_PLAYER)
+            labelToUpdate.setStyle("-fx-background-color: LIGHTYELLOW; -fx-border-color:black;");
 
-        else if (getLeader() == Player.SECOND_PLAYER)
-            leader.setStyle("-fx-background-color: #d98686; -fx-border-color:black");
+        else if (player == Player.SECOND_PLAYER)
+            labelToUpdate.setStyle("-fx-background-color: #d98686; -fx-border-color:black");
         else
-            leader.setStyle("");
+            labelToUpdate.setStyle("");
     }
 
     private Player getLeader(){
@@ -240,7 +367,7 @@ public class Controller {
 
     private String getLeaderWithScore(){
         if (getLeader() == null) return "It's a draw!";
-        return getLeader() + " (" + Math.abs(game.getScore()) + ")";
+        return getLeader() + " (" + game.getScore() + ")";
     }
 
 
@@ -268,9 +395,5 @@ public class Controller {
         ArrayList<Circle> row5 = new ArrayList<>();
         row5.add(c50); row5.add(c51); row5.add(c52); row5.add(c53); row5.add(c54); row5.add(c55); row5.add(c56);
         circles.add(row5);
-    }
-
-    void setAlgorithm(Algorithm algorithm) {
-        this.algorithm = algorithm;
     }
 }

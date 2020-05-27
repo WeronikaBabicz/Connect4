@@ -9,9 +9,14 @@ public class MinMaxAlgorithm implements Algorithm {
 
     private int column = 0;
     private Player forPlayer;
+    private int depth;
+
+    public MinMaxAlgorithm(int depth) {
+        this.depth = depth;
+    }
 
     @Override
-    public int run(Game game, int depth) {
+    public int run(Game game) {
         Game gameCopy = game.deepCopy();
         forPlayer = gameCopy.getCurrentPlayer();
         minMax(gameCopy, depth, gameCopy.getCurrentPlayer());
@@ -21,10 +26,10 @@ public class MinMaxAlgorithm implements Algorithm {
 
 
     private void minMax(Game game, int depth, Player player) {
-        if (player == Player.FIRST_PLAYER) { //maximizing
-            max(game, depth, player);
+        if (player == Player.FIRST_PLAYER) {
+            max(game, depth, player, true);
         } else
-            min(game, depth, player);
+            min(game, depth, player, true);
     }
 
     private Player changePlayer(Game game){
@@ -33,41 +38,51 @@ public class MinMaxAlgorithm implements Algorithm {
     }
 
 
-    private int max(Game game, int depth, Player player){
-        if (depth <= 0)
+    private int max(Game game, int depth, Player player, boolean isRoot){
+        if (depth < 0 || game.isFinished())
             return game.getScore();
 
         else {
             ArrayList<Integer> allowedColumns = game.getAllowedColumns();
-            int maxScore = game.getScore();
+            int maxScore = 0;
 
-            for (Integer allowedColumn : allowedColumns) {
+            depth--;
+            for (int i = 0; i < allowedColumns.size(); i++) {
+                Integer allowedColumn = allowedColumns.get(i);
                 Game newGame = game.deepCopy();
                 newGame.makeMove(allowedColumn);
-                int newScore = min(newGame, --depth, changePlayer(newGame));
-                if (maxScore < newScore) {
+
+                int newScore = min(newGame, depth, changePlayer(newGame), false);
+                if (i == 0 || maxScore < newScore) {
                     maxScore = newScore;
-                    this.column = allowedColumn;
+                    if (forPlayer == Player.FIRST_PLAYER && isRoot)
+                        this.column = allowedColumn;
                 }
+
             }
             return maxScore;
         }
     }
 
-    private int min(Game game, int depth, Player player){
-        if (depth <= 0)
+    private int min(Game game, int depth, Player player, boolean isRoot){
+        if (depth < 0 || game.isFinished())
             return game.getScore();
 
         else {
             ArrayList<Integer> allowedColumns  = game.getAllowedColumns();
-            int minScore = game.getScore();
+            int minScore = 0;
 
-            for (Integer allowedColumn : allowedColumns) {
+            depth--;
+            for (int i = 0; i < allowedColumns.size(); i++) {
+                Integer allowedColumn = allowedColumns.get(i);
                 Game newGame = game.deepCopy();
                 newGame.makeMove(allowedColumn);
-                int newScore = max(newGame, depth, changePlayer(newGame));
-                if (minScore > newScore) {
+
+                int newScore = max(newGame, depth, changePlayer(newGame), false);
+                if (i == 0 || minScore > newScore) {
                     minScore = newScore;
+                    if (forPlayer == Player.SECOND_PLAYER && isRoot)
+                        this.column = allowedColumn;
                 }
             }
             return minScore;

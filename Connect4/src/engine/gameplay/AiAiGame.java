@@ -3,20 +3,22 @@ package engine.gameplay;
 import engine.algorithms.Algorithm;
 import utilities.Player;
 
-import java.util.ArrayList;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class AiAiGame extends Game {
-    private Algorithm algorithm;
+    private Algorithm firstPlayerAlgorithm;
+    private Algorithm secondPlayerAlgorithm;
 
-    public AiAiGame(Algorithm algorithm) {
-        this.algorithm = algorithm;
+    public AiAiGame(Algorithm firstPlayerAlgorithm, Algorithm secondPlayerAlgorithm) {
+        this.firstPlayerAlgorithm = firstPlayerAlgorithm;
+        this.secondPlayerAlgorithm = secondPlayerAlgorithm;
     }
 
 
     private AiAiGame(AiAiGame game){
-        this.algorithm = game.algorithm;
+        this.firstPlayerAlgorithm = game.firstPlayerAlgorithm;
+        this.secondPlayerAlgorithm = game.secondPlayerAlgorithm;
         this.board = boardDeepCopy(game.board);
         this.function = game.function;
         this.isFinished = game.isFinished;
@@ -33,10 +35,22 @@ public class AiAiGame extends Game {
 
 
     public void playTurn(){
-        //if (getCurrentPlayer() == Player.FIRST_PLAYER) {
-            makeMove(algorithm.run(this, 5));
-            changePlayer();
-            makeMove(algorithm.run(this, 5));
-        //}
+        makeMove(firstPlayerAlgorithm.run(this));
+        changePlayer();
+        makeMove(secondPlayerAlgorithm.run(this));
+    }
+
+    @Override
+    public void startGame() {
+        initializeGame();
+    }
+
+
+    public void playRandomTurn(){
+        int rand = (int)(Math.random() * COLUMNS);
+        makeMove(rand);
+        changePlayer();
+        int rand2 = (int)(Math.random() * COLUMNS);
+        makeMove(rand2);
     }
 }

@@ -3,19 +3,17 @@ package engine.gameplay;
 import engine.algorithms.Algorithm;
 import utilities.Player;
 
-import java.util.ArrayList;
-import java.util.EnumMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class AiPlayerGame extends Game{
+public class PlayerAiGame extends Game{
     private Algorithm algorithm;
 
-    public AiPlayerGame(Algorithm algorithm) {
+    public PlayerAiGame(Algorithm algorithm) {
         this.algorithm = algorithm;
     }
 
-    private AiPlayerGame(AiPlayerGame game){
+    private PlayerAiGame(PlayerAiGame game){
         this.algorithm = game.algorithm;
         this.board = boardDeepCopy(game.board);
         this.function = game.function;
@@ -28,7 +26,7 @@ public class AiPlayerGame extends Game{
 
     @Override
     public Game deepCopy() {
-        return new AiPlayerGame(this);
+        return new PlayerAiGame(this);
     }
 
 
@@ -40,7 +38,7 @@ public class AiPlayerGame extends Game{
     }
 
     private boolean makeAIMove(){
-        int columnIndex = algorithm.run(this, 5);
+        int columnIndex = algorithm.run(this);
         return makeMove(columnIndex);
     }
 }
