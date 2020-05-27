@@ -4,11 +4,14 @@ import engine.algorithms.Algorithm;
 import engine.algorithms.AlphaBetaAlgorithm;
 import engine.algorithms.MinMaxAlgorithm;
 import engine.gameplay.*;
+import javafx.application.Platform;
 import javafx.beans.Observable;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -23,6 +26,7 @@ import utilities.Player;
 import javafx.event.ActionEvent;
 
 import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
 
 public class Controller {
     private Game game;
@@ -161,20 +165,39 @@ public class Controller {
             secondPlayerInfo.setText("2nd: AI, " + algAAS.getText()+", depth: " + depAAS.getText());
             start();
 
-            if (randomFirstTurn.isSelected()) {
-                ((AiAiGame)game).playRandomTurn();
-                markMoveWithAI();
-                game.changePlayer();
-                updateLabels();
-            }
 
-            while (!game.isFinished()){
-                ((AiAiGame)game).playTurn();
-                markMoveWithAI();
-                game.changePlayer();
-                updateLabels();
-            }
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    if (randomFirstTurn.isSelected()) {
+                        ((AiAiGame)game).playRandomTurn();
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                runLater();
+                            }
+                        });
+                    }
+
+                    while (!game.isFinished()){
+                        ((AiAiGame)game).playTurn();
+
+                        Platform.runLater(new Runnable() {
+                            @Override
+                            public void run() {
+                                runLater();
+                            }
+                        });
+                    }
+                }
+            }).start();
         }
+    }
+
+    private void runLater(){
+        markMoveWithAI();
+        game.changePlayer();
+        updateLabels();
     }
 
 
@@ -300,6 +323,12 @@ public class Controller {
     }
 
     private void markPlayerMove(Player player){
+
+
+
+
+
+
         int row = game.getRowIndexOfPoint(game.getPlayerLastMove(player));
         int column = game.getColumnIndexOfPoint(game.getPlayerLastMove(player));
 
