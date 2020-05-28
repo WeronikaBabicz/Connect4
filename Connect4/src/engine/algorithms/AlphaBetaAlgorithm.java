@@ -20,7 +20,7 @@ public class AlphaBetaAlgorithm extends Algorithm {
     }
 
 
-    int max(Game game, int depth, Player player, int alpha, int beta, boolean isRoot){
+    private int max(Game game, int depth, Player player, int alpha, int beta, boolean isRoot){
         if (depth < 0 || game.isFinished())
             return game.getScore();
 
