@@ -36,7 +36,7 @@ public class AlphaBetaAlgorithm extends Algorithm {
 
                 int newScore = min(newGame, depth, changePlayer(newGame), alpha, beta, false);
 
-                if (newScore > beta)
+                if (newScore >= beta)
                     return newScore; //prune
 
 
@@ -68,7 +68,7 @@ public class AlphaBetaAlgorithm extends Algorithm {
 
                 int newScore = max(newGame, depth, changePlayer(newGame), alpha, beta, false);
 
-                if (newScore < alpha)
+                if (newScore <= alpha)
                     return newScore; //prune
 
                 beta = Math.min(beta, newScore);

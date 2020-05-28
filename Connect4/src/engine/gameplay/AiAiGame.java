@@ -1,6 +1,7 @@
 package engine.gameplay;
 
 import engine.algorithms.Algorithm;
+import engine.evaluation.EvaluationFunction;
 import utilities.Player;
 
 import java.util.ArrayList;
@@ -13,19 +14,20 @@ public class AiAiGame extends Game {
     private ArrayList<Long> firstPlayerMoveTimes = new ArrayList<>();
     private ArrayList<Long> secondPlayerMoveTimes = new ArrayList<>();
 
-    public AiAiGame(Algorithm firstPlayerAlgorithm, Algorithm secondPlayerAlgorithm) {
+    public AiAiGame(Algorithm firstPlayerAlgorithm, Algorithm secondPlayerAlgorithm, EvaluationFunction evaluationFunction) {
+        super(evaluationFunction);
         this.firstPlayerAlgorithm = firstPlayerAlgorithm;
         this.secondPlayerAlgorithm = secondPlayerAlgorithm;
     }
 
 
     private AiAiGame(AiAiGame game){
+        super(game.function);
         this.firstPlayerMoveTimes = game.firstPlayerMoveTimes;
         this.secondPlayerMoveTimes = game.secondPlayerMoveTimes;
         this.firstPlayerAlgorithm = game.firstPlayerAlgorithm;
         this.secondPlayerAlgorithm = game.secondPlayerAlgorithm;
         this.board = boardDeepCopy(game.board);
-        this.function = game.function;
         this.isFinished = game.isFinished;
         this.playerLastMove = game.playerLastMove.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         this.currentPlayer = (game.currentPlayer == Player.FIRST_PLAYER) ? Player.FIRST_PLAYER : Player.SECOND_PLAYER;
@@ -44,7 +46,7 @@ public class AiAiGame extends Game {
         makeMove(firstPlayerAlgorithm.run(this));
         Long firstAIMoveTime = System.currentTimeMillis() - aiMoveStartTime;
         firstPlayerMoveTimes.add(firstAIMoveTime);
-        System.out.println("AI 1 move time: " + firstAIMoveTime);
+        //System.out.println(firstAIMoveTime);
 
         changePlayer();
 
@@ -52,7 +54,7 @@ public class AiAiGame extends Game {
         makeMove(secondPlayerAlgorithm.run(this));
         Long secondAIMoveTime = System.currentTimeMillis() - aiMoveStartTime;
         secondPlayerMoveTimes.add(secondAIMoveTime);
-        System.out.println("AI 2 move time: " + secondAIMoveTime);
+        //System.out.println("AI 2 move time: " + secondAIMoveTime);
     }
 
     @Override

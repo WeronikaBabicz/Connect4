@@ -1,6 +1,6 @@
 package engine.gameplay;
 
-import engine.evaluation.ChangedPointScoringFunction;
+import engine.evaluation.ChangedPointEvaluationFunction;
 import engine.evaluation.EvaluationFunction;
 import utilities.Player;
 
@@ -9,11 +9,11 @@ import java.util.EnumMap;
 import java.util.Map;
 
 public abstract class Game {
-    private static final int WINNING_SEQ_NUMBER = 4;
+    public static final int WINNING_SEQ_NUMBER = 4;
     static final int COLUMNS = 7;
     private static final int ROWS = 6;
 
-    EvaluationFunction function = new ChangedPointScoringFunction();
+    EvaluationFunction function;
     boolean isFinished = false;
     ArrayList<ArrayList<Point>> board = new ArrayList<ArrayList<Point>>();
     Player currentPlayer;
@@ -21,6 +21,9 @@ public abstract class Game {
     Map<Player, Point> playerLastMove = new EnumMap<Player, Point>(Player.class);
     int score = 0;
 
+    public Game(EvaluationFunction function) {
+        this.function = function;
+    }
 
     public abstract Game deepCopy();
 

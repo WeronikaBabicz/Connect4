@@ -3,6 +3,7 @@ package gui;
 import engine.algorithms.Algorithm;
 import engine.algorithms.AlphaBetaAlgorithm;
 import engine.algorithms.MinMaxAlgorithm;
+import engine.evaluation.*;
 import engine.gameplay.*;
 import javafx.application.Platform;
 import javafx.beans.Observable;
@@ -32,7 +33,7 @@ public class Controller {
     private Game game;
 
     @FXML
-    private Label winner, turn, turnColor, gameType, winnerColor, leader, winnerTitle, firstPlayerInfo, secondPlayerInfo;
+    private Label winner, turn, turnColor, gameType, winnerColor, leader, winnerTitle, firstPlayerInfo, secondPlayerInfo, evalFunction;
 
     private ArrayList<ArrayList<Circle>> circles = new ArrayList<>();
 
@@ -64,6 +65,24 @@ public class Controller {
 
     @FXML
     private ComboBox depthAASecond = new ComboBox();
+
+    @FXML
+    private ComboBox evaluationAlgorithmPA = new ComboBox();
+
+    @FXML
+    private ComboBox evaluationAlgorithmAA = new ComboBox();
+
+    @FXML
+    private ComboBox evaluationAlgorithmPP = new ComboBox();
+
+    @FXML
+    private Label evAlgPP = new Label();
+
+    @FXML
+    private Label evAlgPA = new Label();
+
+    @FXML
+    private Label evAlgAA = new Label();
 
     @FXML
     private Label algPA = new Label();
@@ -131,23 +150,31 @@ public class Controller {
 
     @FXML
     void newGamePP(ActionEvent event){
-        Game newGame = new PlayerPlayerGame();
-        setGame(newGame);
-        gameType.setText("Player vs. Player");
-        firstPlayerInfo.setText("1st: Player");
-        secondPlayerInfo.setText("2nd: Player");
-        start();
+        EvaluationFunction evaluationFunction = collectInfoOfEvaluationFunction(evAlgPP);
+
+        if (evaluationFunction != null){
+            Game newGame = new PlayerPlayerGame(evaluationFunction);
+            setGame(newGame);
+            gameType.setText("Player vs. Player");
+            firstPlayerInfo.setText("1st: Player");
+            secondPlayerInfo.setText("2nd: Player");
+            setEvalFunctionInfo(evAlgPP);
+            start();
+        }
     }
 
     @FXML
     void newGamePA(ActionEvent event){
         Algorithm algorithm = collectInfoOfAlgorithm(algPA, depPA);
-        if (algorithm != null) {
-            Game newGame = new PlayerAiGame(algorithm);
+        EvaluationFunction evaluationFunction = collectInfoOfEvaluationFunction(evAlgPA);
+
+        if (algorithm != null && evaluationFunction != null) {
+            Game newGame = new PlayerAiGame(algorithm, evaluationFunction);
             setGame(newGame);
             gameType.setText("Player vs. AI");
             firstPlayerInfo.setText("1st: Player");
             secondPlayerInfo.setText("2nd: AI, " + algPA.getText()+", depth: " + depPA.getText());
+            setEvalFunctionInfo(evAlgPA);
             start();
 
         }
@@ -157,13 +184,15 @@ public class Controller {
     void newGameAA(ActionEvent event){
         Algorithm firstAlgorithm = collectInfoOfAlgorithm(algAAF, depAAF);
         Algorithm secondAlgorithm = collectInfoOfAlgorithm(algAAS, depAAS);
+        EvaluationFunction evaluationFunction = collectInfoOfEvaluationFunction(evAlgAA);
 
-        if (firstAlgorithm != null && secondAlgorithm != null){
-            Game newGame = new AiAiGame(firstAlgorithm, secondAlgorithm);
+        if (firstAlgorithm != null && secondAlgorithm != null && evaluationFunction != null){
+            Game newGame = new AiAiGame(firstAlgorithm, secondAlgorithm, evaluationFunction);
             setGame(newGame);
             gameType.setText("AI vs. AI");
             firstPlayerInfo.setText("1st: AI, " + algAAF.getText()+", depth: " + depAAF.getText());
             secondPlayerInfo.setText("2nd: AI, " + algAAS.getText()+", depth: " + depAAS.getText());
+            setEvalFunctionInfo(evAlgAA);
             start();
 
             new Thread(new Runnable() {
@@ -181,7 +210,6 @@ public class Controller {
 
                     while (!game.isFinished()){
                         ((AiAiGame)game).playTurn();
-                        ((AiAiGame)game).getFirstPlayerAverageMoveTime();
 
                         Platform.runLater(new Runnable() {
                             @Override
@@ -191,6 +219,7 @@ public class Controller {
                         });
                     }
 
+                    System.out.println("SCORE: "+game.getScore());
                     if (((AiAiGame) game).getFirstPlayerAverageMoveTime() != -1)
                         System.out.println("Average move time for player 1st: AI, " + algAAF.getText()+ ", depth: " + depAAF.getText() +" -> " + ((AiAiGame) game).getFirstPlayerAverageMoveTime());
 
@@ -211,15 +240,33 @@ public class Controller {
     }
 
 
+    private void setEvalFunctionInfo(Label label){
+        evalFunction.setText(label.getText());
+    }
+
 
     private Algorithm collectInfoOfAlgorithm(Label label, Label depthLabel){
         Algorithm algorithm = null;
-        if (label.getText().equals("Min-Max")) {
+        if (label.getText().equals("Min-Max"))
             algorithm = new MinMaxAlgorithm(Integer.parseInt(depthLabel.getText()));
-        } else if (label.getText().equals("Alpha-Beta")) {
+        else if (label.getText().equals("Alpha-Beta"))
             algorithm = new AlphaBetaAlgorithm(Integer.parseInt(depthLabel.getText()));
-        }
+
         return algorithm;
+    }
+
+    private EvaluationFunction collectInfoOfEvaluationFunction(Label label){
+        EvaluationFunction evaluationFunction = null;
+        if (label.getText().equals("Changed Point"))
+            evaluationFunction = new ChangedPointEvaluationFunction();
+        else if (label.getText().equals("Whole Board"))
+            evaluationFunction = new WholeBoardEvaluationFunction();
+        else if (label.getText().equals("Changed Point - Blocking"))
+            evaluationFunction = new ChangedPointBlockingEvaluationFunction();
+        else if (label.getText().equals("Whole Board - Blocking"))
+            evaluationFunction = new WholeBoardBlockingEvaluationFunction();
+
+        return evaluationFunction;
     }
 
     void startWindow(){
@@ -265,6 +312,19 @@ public class Controller {
         algorithmAASecond.getItems().addAll(algs);
         setListener(algorithmAASecond, algAAS);
         algorithmAASecond.getSelectionModel().selectFirst();
+
+        ObservableList<String> evals = FXCollections.observableArrayList("Changed Point", "Whole Board", "Changed Point - Blocking", "Whole Board - Blocking");
+        evaluationAlgorithmPA.getItems().addAll(evals);
+        setListener(evaluationAlgorithmPA, evAlgPA);
+        evaluationAlgorithmPA.getSelectionModel().selectFirst();
+
+        evaluationAlgorithmAA.getItems().addAll(evals);
+        setListener(evaluationAlgorithmAA, evAlgAA);
+        evaluationAlgorithmAA.getSelectionModel().selectFirst();
+
+        evaluationAlgorithmPP.getItems().addAll(evals);
+        setListener(evaluationAlgorithmPP, evAlgPP);
+        evaluationAlgorithmPP.getSelectionModel().selectFirst();
     }
 
     private void setListener(ComboBox box, Label label){

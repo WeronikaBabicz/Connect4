@@ -1,6 +1,7 @@
 package engine.gameplay;
 
 import engine.algorithms.Algorithm;
+import engine.evaluation.EvaluationFunction;
 import utilities.Player;
 
 import java.util.ArrayList;
@@ -11,14 +12,15 @@ public class PlayerAiGame extends Game{
     private Algorithm algorithm;
     private ArrayList<Long> aiPlayerMoveTimes = new ArrayList<>();
 
-    public PlayerAiGame(Algorithm algorithm) {
+    public PlayerAiGame(Algorithm algorithm, EvaluationFunction evaluationFunction) {
+        super(evaluationFunction);
         this.algorithm = algorithm;
     }
 
     private PlayerAiGame(PlayerAiGame game){
+        super(game.function);
         this.algorithm = game.algorithm;
         this.board = boardDeepCopy(game.board);
-        this.function = game.function;
         this.isFinished = game.isFinished;
         this.playerLastMove = game.playerLastMove.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         this.currentPlayer = (game.currentPlayer == Player.FIRST_PLAYER) ? Player.FIRST_PLAYER : Player.SECOND_PLAYER;
@@ -44,7 +46,7 @@ public class PlayerAiGame extends Game{
         boolean succ = makeMove(algorithm.run(this));
         long aiMoveTime = System.currentTimeMillis() - aiMoveStartTime;
         aiPlayerMoveTimes.add(aiMoveTime);
-        System.out.println("AI move time: " + aiMoveTime);
+        //System.out.println("AI move time: " + aiMoveTime);
 
         return succ;
     }

@@ -2,6 +2,8 @@ package gui;
 
 import engine.algorithms.Algorithm;
 import engine.algorithms.MinMaxAlgorithm;
+import engine.evaluation.ChangedPointEvaluationFunction;
+import engine.evaluation.EvaluationFunction;
 import engine.gameplay.Game;
 import engine.gameplay.PlayerPlayerGame;
 import javafx.application.Application;
@@ -18,7 +20,8 @@ public class Main extends Application {
         Parent root = loader.load();
         Controller controller = (Controller) loader.getController();
 
-        Game game = new PlayerPlayerGame();
+        EvaluationFunction evaluationFunction = new ChangedPointEvaluationFunction();
+        Game game = new PlayerPlayerGame(evaluationFunction);
         //Algorithm algorithm = new MinMaxAlgorithm();
 
         //controller.setAlgorithm(algorithm);
@@ -26,7 +29,7 @@ public class Main extends Application {
         controller.startWindow();
 
         primaryStage.setTitle("Connect4 game");
-        primaryStage.setScene(new Scene(root, 1180, 600));
+        primaryStage.setScene(new Scene(root, 1180, 720));
         primaryStage.show();
     }
 
