@@ -1,6 +1,7 @@
 package engine.gameplay;
 
 import engine.evaluation.ChangedPointScoringFunction;
+import engine.evaluation.EvaluationFunction;
 import utilities.Player;
 
 import java.util.ArrayList;
@@ -12,7 +13,7 @@ public abstract class Game {
     static final int COLUMNS = 7;
     private static final int ROWS = 6;
 
-    ChangedPointScoringFunction function = new ChangedPointScoringFunction();
+    EvaluationFunction function = new ChangedPointScoringFunction();
     boolean isFinished = false;
     ArrayList<ArrayList<Point>> board = new ArrayList<ArrayList<Point>>();
     Player currentPlayer;

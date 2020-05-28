@@ -5,46 +5,30 @@ import utilities.Player;
 
 import java.util.ArrayList;
 
-public class AlphaBetaAlgorithm implements Algorithm{
-
-    private int column = 3;
-    private Player forPlayer;
-    private int depth;
+public class AlphaBetaAlgorithm extends Algorithm {
 
     public AlphaBetaAlgorithm(int depth) {
         this.depth = depth;
     }
 
     @Override
-    public int run(Game game) {
-        Game gameCopy = game.deepCopy();
-        forPlayer = gameCopy.getCurrentPlayer();
-        minMax(gameCopy, depth, gameCopy.getCurrentPlayer());
-        return column;
-    }
-
-
-    private void minMax(Game game, int depth, Player player) {
+    protected void minMax(Game game, int depth, Player player) {
         if (player == Player.FIRST_PLAYER) { //maximizing
             max(game, depth, player, Integer.MIN_VALUE, Integer.MAX_VALUE, true);
         } else
             min(game, depth, player, Integer.MIN_VALUE, Integer.MAX_VALUE, true);
     }
 
-    private Player changePlayer(Game game){
-        game.changePlayer();
-        return game.getCurrentPlayer();
-    }
 
-
-    private int max(Game game, int depth, Player player, int alpha, int beta, boolean isRoot){
-        if (depth <= 0 || game.isFinished())
+    int max(Game game, int depth, Player player, int alpha, int beta, boolean isRoot){
+        if (depth < 0 || game.isFinished())
             return game.getScore();
 
         else {
             ArrayList<Integer> allowedColumns = game.getAllowedColumns();
             int bestScore = 0;
 
+            depth--;
             for (int i = 0; i < allowedColumns.size(); i++) {
                 Integer allowedColumn = allowedColumns.get(i);
                 Game newGame = game.deepCopy();
@@ -69,7 +53,7 @@ public class AlphaBetaAlgorithm implements Algorithm{
     }
 
     private int min(Game game, int depth, Player player, int alpha, int beta, boolean isRoot){
-        if (depth <= 0 || game.isFinished())
+        if (depth < 0 || game.isFinished())
             return game.getScore();
 
         else {

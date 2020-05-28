@@ -5,38 +5,19 @@ import utilities.Player;
 
 import java.util.ArrayList;
 
-public class MinMaxAlgorithm implements Algorithm {
-
-    private int column = 0;
-    private Player forPlayer;
-    private int depth;
+public class MinMaxAlgorithm extends Algorithm {
 
     public MinMaxAlgorithm(int depth) {
         this.depth = depth;
     }
 
     @Override
-    public int run(Game game) {
-        Game gameCopy = game.deepCopy();
-        forPlayer = gameCopy.getCurrentPlayer();
-        minMax(gameCopy, depth, gameCopy.getCurrentPlayer());
-        return column;
-    }
-
-
-
-    private void minMax(Game game, int depth, Player player) {
+    protected void minMax(Game game, int depth, Player player) {
         if (player == Player.FIRST_PLAYER) {
             max(game, depth, player, true);
         } else
             min(game, depth, player, true);
     }
-
-    private Player changePlayer(Game game){
-        game.changePlayer();
-        return game.getCurrentPlayer();
-    }
-
 
     private int max(Game game, int depth, Player player, boolean isRoot){
         if (depth < 0 || game.isFinished())

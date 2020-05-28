@@ -149,6 +149,7 @@ public class Controller {
             firstPlayerInfo.setText("1st: Player");
             secondPlayerInfo.setText("2nd: AI, " + algPA.getText()+", depth: " + depPA.getText());
             start();
+
         }
     }
 
@@ -165,7 +166,6 @@ public class Controller {
             secondPlayerInfo.setText("2nd: AI, " + algAAS.getText()+", depth: " + depAAS.getText());
             start();
 
-
             new Thread(new Runnable() {
                 @Override
                 public void run() {
@@ -181,6 +181,7 @@ public class Controller {
 
                     while (!game.isFinished()){
                         ((AiAiGame)game).playTurn();
+                        ((AiAiGame)game).getFirstPlayerAverageMoveTime();
 
                         Platform.runLater(new Runnable() {
                             @Override
@@ -189,6 +190,15 @@ public class Controller {
                             }
                         });
                     }
+
+                    if (((AiAiGame) game).getFirstPlayerAverageMoveTime() != -1)
+                        System.out.println("Average move time for player 1st: AI, " + algAAF.getText()+ ", depth: " + depAAF.getText() +" -> " + ((AiAiGame) game).getFirstPlayerAverageMoveTime());
+
+                    if (((AiAiGame) game).getSecondPlayerAverageMoveTime() != -1)
+                        System.out.println("Average move time for player 2nd: AI, " + algAAS.getText()+ ", depth: " + depAAS.getText() +" -> " + ((AiAiGame) game).getSecondPlayerAverageMoveTime());
+
+                    if (game.getWinner() != null)
+                        System.out.println("Winner (" + game.getWinner() + ") number of moves: " + ((game.getWinner() == Player.FIRST_PLAYER) ? ((AiAiGame) game).getFirstPlayerNumberOfMoves() : ((AiAiGame) game).getSecondPlayerNumberOfMoves()));
                 }
             }).start();
         }
@@ -227,7 +237,7 @@ public class Controller {
     }
 
     private void initializeDepthBoxes(){
-        ObservableList<String> depths = FXCollections.observableArrayList("1", "2", "3", "4", "5", "6");
+        ObservableList<String> depths = FXCollections.observableArrayList("1", "2", "3", "4", "5", "6", "7", "8");
         depthPA.getItems().addAll(depths);
         setListener(depthPA, depPA);
         depthPA.getSelectionModel().select(4);
@@ -323,16 +333,10 @@ public class Controller {
     }
 
     private void markPlayerMove(Player player){
-
-
-
-
-
-
         int row = game.getRowIndexOfPoint(game.getPlayerLastMove(player));
         int column = game.getColumnIndexOfPoint(game.getPlayerLastMove(player));
 
-        System.out.println(player + " " + row + "," + column);
+        //System.out.println(player + " " + row + "," + column);
         setColor(row, column, getPlayerColor(player));
     }
 
@@ -347,6 +351,8 @@ public class Controller {
         if (game instanceof PlayerAiGame) {
             succ = ((PlayerAiGame) game).playTurn(columnIndex);
             markMoveWithAI();
+            if (game.isFinished() && ((PlayerAiGame) game).getAIAverageMoveTime() != -1)
+                System.out.println("Average move time for player 2nd: AI, " + algPA.getText()+ ", depth: " + depPA.getText() +" -> " + ((PlayerAiGame) game).getAIAverageMoveTime());
         }
 
         if (succ)

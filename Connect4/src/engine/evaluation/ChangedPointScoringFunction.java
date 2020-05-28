@@ -9,13 +9,8 @@ import java.util.List;
 
 public class ChangedPointScoringFunction extends EvaluationFunction{
 
-    public void calculateScore(Game game){
-        this.game = game;
-        this.score = game.getScore();
-        calculateAndSetScore();
-    }
-
-    private void calculateAndSetScore(){
+    @Override
+    void calculateAndSetScore(){
         Point last = game.getCurrentPlayerLastMove();
 
         ArrayList<Point> leftDiagonal = game.createLeftDiagonal(last);
@@ -52,10 +47,6 @@ public class ChangedPointScoringFunction extends EvaluationFunction{
                 }
             }
         }
-        return score;
-    }
-
-    public int getScore() {
         return score;
     }
 }

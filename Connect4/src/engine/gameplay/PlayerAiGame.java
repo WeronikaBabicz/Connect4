@@ -3,11 +3,13 @@ package engine.gameplay;
 import engine.algorithms.Algorithm;
 import utilities.Player;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class PlayerAiGame extends Game{
     private Algorithm algorithm;
+    private ArrayList<Long> aiPlayerMoveTimes = new ArrayList<>();
 
     public PlayerAiGame(Algorithm algorithm) {
         this.algorithm = algorithm;
@@ -38,7 +40,20 @@ public class PlayerAiGame extends Game{
     }
 
     private boolean makeAIMove(){
-        int columnIndex = algorithm.run(this);
-        return makeMove(columnIndex);
+        long aiMoveStartTime = System.currentTimeMillis();
+        boolean succ = makeMove(algorithm.run(this));
+        long aiMoveTime = System.currentTimeMillis() - aiMoveStartTime;
+        aiPlayerMoveTimes.add(aiMoveTime);
+        System.out.println("AI move time: " + aiMoveTime);
+
+        return succ;
+    }
+
+    public ArrayList<Long> getAiPlayerMoveTimes() {
+        return aiPlayerMoveTimes;
+    }
+
+    public double getAIAverageMoveTime(){
+        return aiPlayerMoveTimes.stream().mapToDouble(a -> a).average().orElse(-1.0);
     }
 }
